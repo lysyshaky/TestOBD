@@ -4,7 +4,7 @@ apply plugin: 'kotlin-android'
 android {
     compileSdkVersion 30
     defaultConfig {
-        applicationId 'com.fr3ts0n.ecu.gui.androbd'
+        applicationId 'com.fr3ts0n.ecu.gui.test'
         minSdkVersion 17
         // SDK 25 to allow background service mechanism for plugins
         targetSdkVersion 25

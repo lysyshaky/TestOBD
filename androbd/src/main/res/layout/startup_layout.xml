@@ -4,15 +4,123 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     >
-
-    <ImageView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="#20FFFFFF"
-        android:contentDescription="@string/logo"
-        android:padding="@dimen/activity_horizontal_margin"
-        android:src="@drawable/logo"/>
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingTop="40dp">
+    <TextView
+
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dip"
+        android:text="Load from CSV from phone(files)"
+        android:layout_marginBottom="5dp"
+        />
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.5"
+        android:textSize="16dp"
+        android:text="Load CSV"
+        android:textAllCaps="false"
+        android:id="@+id/load" />
+</LinearLayout>
+<!--    <Spinner-->
+<!--        android:paddingLeft="20dp"-->
+<!--        android:paddingEnd="20dp"-->
+<!--        android:id="@+id/load"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:prompt="Load"-->
+<!--        />-->
+<!--    <-->
+<!--        android:id="@+id/load"-->
+<!--        android:icon="@drawable/ic_action_load"-->
+<!--        android:title="@string/load"/>-->
+    <LinearLayout
+        android:paddingTop="50dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="1"
+        android:paddingLeft="20dp">
+
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.1"
+            android:hint="Enter weight"
+
+            />
+
+        <TextView
+            android:id="@+id/lblListItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Weight"
+            android:gravity="left"
+            android:layout_weight="0.2"
+            android:textAppearance="@android:style/TextAppearance.Medium"
+            android:paddingLeft="10dp" />
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:paddingTop="50dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+    android:weightSum="1"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp">
+
+        <Button
+            android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.5"
+        android:textSize="16dp"
+        android:text="Start recording"
+            android:textAllCaps="false"
+        android:id="@+id/start_recording" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:textSize="16dp"
+            android:text="Stop recording"
+            android:textAllCaps="false"
+            android:id="@+id/stop_recording" />
+
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingLeft="20dp"
+        android:paddingTop="170dp"
+        android:paddingBottom="118dp"
+        android:paddingRight="20dp"
+        android:weightSum="1">
+
+        <Button
+
+            android:id="@+id/send_data"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sent data to API"
+            android:textAllCaps="false"
+            android:textSize="16dp" />
+
+
+    </LinearLayout>
 
     <LinearLayout
         android:orientation="vertical"
