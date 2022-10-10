@@ -1,0 +1,6 @@
+telefon,obd,avto,voznik,opis poskusa,obtezitev,razdelitev,okna,klima,porabniki,ogretost,zunanji pogoji,obremenitev,gas
+1,1,1,1,prazna prva voznja,prazen,spredaj desno,zaprta,ni,ni,mrzel,normalno,brez,počasi
+1,2,1,1,prazna prva voznja,prazen,spredaj desno,zaprta,ni,ni,mrzel,normalno,brez,počasi
+1,1,1,2,prazna prva voznja,prazen,spredaj desno,zaprta,ni,ni,mrzel,normalno,brez,počasi
+1,2,1,1,zmerno naložen,zmerno naložen,sredina,zaprta,ni,ni,topel,mrzlo,brez,na polno
+1,2,1,1,zmerno naložen,zmerno naložen,sredina,zaprta,ni,ni,topel,mrzlo,prikolica,na polno

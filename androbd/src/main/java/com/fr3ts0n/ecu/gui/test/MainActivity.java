@@ -40,6 +40,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.Menu;
@@ -50,6 +51,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -69,12 +71,19 @@ import com.fr3ts0n.pvs.PvList;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Timer;
@@ -95,7 +104,30 @@ public class MainActivity extends PluginManager
         PropertyChangeListener,
         SharedPreferences.OnSharedPreferenceChangeListener,
         AbsListView.MultiChoiceModeListener
+
+
+
 {
+//    public static void main (String [] args){
+//
+//        String path = "/Users/yuralysyshak/AndroidStudioProjects/example.csv";
+//        String line = "";
+//        try {
+//            BufferedReader br = new BufferedReader(new FileReader(path));
+//
+//            while ((line = br.readLine()) != null){
+//                System.out.println(line);
+//            }
+//
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    };
+
+
+
     /**
      * Key names for preferences
      */
@@ -615,7 +647,55 @@ public class MainActivity extends PluginManager
         }
         // set up data update timer
         updateTimer.schedule(updateTask, 0, DISPLAY_UPDATE_TIME);
+        //read csv
+        readCarData();
+        Spinner dropdown = findViewById(R.id.csv);
+        ArrayAdapter adapter = new ArrayAdapter (MainActivity.this,
+                android.R.layout.simple_spinner_item,carSamples);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        dropdown.setAdapter(adapter);
+
     }
+
+
+    private List<CarSample> carSamples = new ArrayList<>();
+    private void readCarData (){
+      InputStream is =  getResources().openRawResource(R.raw.example);
+      BufferedReader reader = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+      String line = "";
+      try {
+          reader.readLine();
+         while((line = reader.readLine()) != null) {
+            String[] tokens = line.split(",");
+
+            CarSample sample = new CarSample();
+            sample.setTelefon(Integer.parseInt(tokens[0]));
+            sample.setObd(Integer.parseInt(tokens[1]));
+            sample.setAvto(Integer.parseInt(tokens[2]));
+            sample.setVoznik(Integer.parseInt(tokens[3]));
+            sample.setOpis_poskusa((tokens[4]));
+            sample.setObtezitev((tokens[5]));
+            sample.setRazdelitev((tokens[6]));
+            sample.setOkna((tokens[7]));
+            sample.setKlima((tokens[8]));
+            sample.setObremenitev((tokens[9]));
+            sample.setGas((tokens[10]));
+            carSamples.add(sample);
+
+
+            Log.d("MyActivity", "just created" + sample);
+            //System.out.println(sample);
+        }
+          } catch (IOException e) {
+          Log.wtf("MyActivity", "Error reading data file on line"+ line + e);
+              e.printStackTrace();
+          }
+
+      }
+
+
+
+
 
     /**
      * Handler for application start event

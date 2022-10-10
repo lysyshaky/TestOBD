@@ -19,14 +19,25 @@
         android:text="Load from CSV from phone(files)"
         android:layout_marginBottom="5dp"
         />
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.5"
-        android:textSize="16dp"
-        android:text="Load CSV"
-        android:textAllCaps="false"
-        android:id="@+id/load" />
+<!--    <Button-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_weight="0.5"-->
+<!--        android:textSize="16dp"-->
+<!--        android:text="Load CSV"-->
+<!--        android:textAllCaps="false"-->
+<!--        android:id="@+id/load" />-->
+
+
+<!--        horizontall scroll -->
+            <Spinner
+                android:id="@+id/csv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:drawable/btn_dropdown"
+                android:spinnerMode="dropdown"/>
+
+
 </LinearLayout>
 <!--    <Spinner-->
 <!--        android:paddingLeft="20dp"-->
