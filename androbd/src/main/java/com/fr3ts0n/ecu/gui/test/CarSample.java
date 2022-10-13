@@ -7,7 +7,10 @@ public class CarSample {
    private int avto;
    private int voznik;
 
-   private String opis_poskusa, obtezitev,razdelitev,okna,klima,porabniki,ogretost,zunanji_pogoji, obremenitev,gas;
+   private String opis_poskusa, obtezitev, razdelitev, okna, klima, porabniki, ogretost, zunanji_pogoji, obremenitev, gas;
+
+   private int elementId;
+
 
     public int getTelefon() {
         return telefon;
@@ -124,7 +127,7 @@ public class CarSample {
     @Override
     public String toString() {
         return
-                "telefon=" + telefon +
+                "\ntelefon=" + telefon +
                 ", \nobd=" + obd +
                 ", \navto=" + avto +
                 ", \nvoznik=" + voznik +
@@ -139,5 +142,13 @@ public class CarSample {
                 ", \nobremenitev='" + obremenitev + '\'' +
                 ", \ngas='" + gas + '\''
                 ;
+    }
+
+    public int getElementId() {
+        return elementId;
+    }
+
+    public void setElementId(int elementId) {
+        this.elementId = elementId;
     }
 }

@@ -52,6 +52,7 @@ import android.view.WindowManager;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -69,21 +70,31 @@ import com.fr3ts0n.pvs.PvChangeEvent;
 import com.fr3ts0n.pvs.PvChangeListener;
 import com.fr3ts0n.pvs.PvList;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONStringer;
+import org.json.JSONTokener;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Timer;
@@ -94,11 +105,12 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+import java.util.stream.Collectors;
 
 /**
  * Main Activity for AndrOBD app
  */
-public class MainActivity extends PluginManager
+public class MainActivity<getCarSamples> extends PluginManager
         implements PvChangeListener,
         AdapterView.OnItemLongClickListener,
         PropertyChangeListener,
@@ -654,8 +666,136 @@ public class MainActivity extends PluginManager
                 android.R.layout.simple_spinner_item,carSamples);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         dropdown.setAdapter(adapter);
+        //dropdown.setOnItemSelectedListener();
+
+        Button sendApiData = findViewById(R.id.send_data);
+        sendApiData.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String state = dropdown.getSelectedItem().toString();
+                Toast.makeText(getApplicationContext(), state, Toast.LENGTH_LONG).show();
+
+                JSONObject jsonObject = new JSONObject();
+                int elementId = 1;
+                Log.d("STRING JSON", state);
+                for (int i = 0; i < state.length(); i++) // variable count to be your list (edit text) size.
+                {
+
+                   try
+                   {
+                        //fix ID
+                        elementId = i+1;
+                        //https://stackoverflow.com/questions/64206331/how-to-add-values-to-jsonobject-on-button-click-in-android
+                        //   jsonObject2.put(String.valueOf(carSamples.get(i).getTelefon()), String.valueOf(carSamples.get(i).getTelefon()));
+                        jsonObject.put(String.valueOf(elementId), state.trim());
+
+                    }
+                    catch (Exception e)
+                    {
+                        e.printStackTrace();
+                        Log.e("JsonToSendError: ", String.valueOf(e));
+                    }
+
+                    Log.e("JsonToSend: ", String.valueOf(jsonObject));
+                }
+
+
+//                JSONObject my_data = new JSONObject();
+//                try {
+//                    my_data.put("Data", dropdown.getSelectedItem().toString());
+//                    Log.d("MyActivity", "JSON created " + my_data);
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+
+
+            }
+        });
+
+
+
+//        class SpinnerActivity extends Activity implements AdapterView.OnItemSelectedListener {
+//
+//
+//            public void onItemSelected(AdapterView<?> parent, View view,
+//                                       int pos, long id) {
+//                // An item was selected. You can retrieve the selected item using
+//                // parent.getItemAtPosition(pos)
+//            }
+//
+//            public void onNothingSelected(AdapterView<?> parent) {
+//                // Another interface callback
+//            }
+//        }
+
 
     }
+
+
+//save stream to json object from spinner look at documents use onItemSelected and get a stream print it and send to json object
+
+//Test ADD CSV Data from spinner to JSON OBJECT
+    public List<CarSample> getCarSamples() throws IOException, JSONException {
+
+        List<CarSample> results = new ArrayList<CarSample>();
+
+        //Wrong code URL maybe error is here
+        List<CarSample> rawJSON = carSamples;
+        //Errors here maybe
+        JSONObject root  = new JSONObject((JSONTokener) rawJSON);
+
+        JSONArray carsInfo = root.getJSONArray("Cars");
+
+        for(int i = 0; i < carsInfo.length(); i++){
+            JSONObject jsonCarInfo = carsInfo.getJSONObject(i);
+            int telefon = jsonCarInfo.getInt("telefon");
+            int obd = jsonCarInfo.getInt("obd");
+            int avto = jsonCarInfo.getInt("avto");
+            int voznik = jsonCarInfo.getInt("voznik");
+            String opis_poskusa = jsonCarInfo.getString("opis poskusa");
+            String obtezitev = jsonCarInfo.getString("obtezitev");
+            String razdelitev = jsonCarInfo.getString("razdelitev");
+            String okna = jsonCarInfo.getString("okna");
+            String klima = jsonCarInfo.getString("klima");
+            String porabniki = jsonCarInfo.getString("porabniki");
+            String ogretost = jsonCarInfo.getString("ogretost");
+            String zunanji_pogoji = jsonCarInfo.getString("zunanji pogoji");
+            String obremenitev = jsonCarInfo.getString("obremenitev");
+            String gas = jsonCarInfo.getString("gas");
+
+            //create a new object / collection of data
+            CarSample carInfo = new CarSample();
+            carInfo.setTelefon(telefon);
+            carInfo.setObd(obd);
+            carInfo.setAvto(avto);
+            carInfo.setVoznik(voznik);
+            carInfo.setOpis_poskusa(opis_poskusa);
+            carInfo.setObtezitev(obtezitev);
+            carInfo.setRazdelitev(razdelitev);
+            carInfo.setOkna(okna);
+            carInfo.setKlima(klima);
+            carInfo.setPorabniki(porabniki);
+            carInfo.setOgretost(ogretost);
+            carInfo.setZunanji_pogoji(zunanji_pogoji);
+            carInfo.setObremenitev(obremenitev);
+            carInfo.setGas(gas);
+
+            results.add(carInfo);
+            Log.d("MyActivity", "JSON" + carInfo);
+            //System.out.println(carInfo);
+
+        }
+        try {
+            getCarSamples();
+            System.out.println("JSON CARINFO");
+        } catch (JSONException e) {
+            System.out.println("ERROR CARSINFO");
+            e.printStackTrace();
+        }
+
+        return results;
+    }
+
 
 
     private List<CarSample> carSamples = new ArrayList<>();
@@ -663,8 +803,10 @@ public class MainActivity extends PluginManager
       InputStream is =  getResources().openRawResource(R.raw.example);
       BufferedReader reader = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
       String line = "";
+
       try {
           reader.readLine();
+
          while((line = reader.readLine()) != null) {
             String[] tokens = line.split(",");
 
@@ -678,16 +820,20 @@ public class MainActivity extends PluginManager
             sample.setRazdelitev((tokens[6]));
             sample.setOkna((tokens[7]));
             sample.setKlima((tokens[8]));
-            sample.setObremenitev((tokens[9]));
-            sample.setGas((tokens[10]));
+            sample.setPorabniki((tokens[9]));
+             sample.setOgretost((tokens[10]));
+             sample.setZunanji_pogoji((tokens[11]));
+            sample.setObremenitev((tokens[12]));
+            sample.setGas((tokens[13]));
+
             carSamples.add(sample);
 
 
-            Log.d("MyActivity", "just created" + sample);
+            Log.d("MyActivity", "just created " + sample);
             //System.out.println(sample);
         }
           } catch (IOException e) {
-          Log.wtf("MyActivity", "Error reading data file on line"+ line + e);
+         Log.wtf("MyActivity", "Error reading data file on line "+ line + e);
               e.printStackTrace();
           }
 
