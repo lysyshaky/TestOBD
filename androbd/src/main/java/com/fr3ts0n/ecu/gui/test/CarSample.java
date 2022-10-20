@@ -127,20 +127,20 @@ public class CarSample {
     @Override
     public String toString() {
         return
-                "\ntelefon=" + telefon +
-                ", \nobd=" + obd +
-                ", \navto=" + avto +
-                ", \nvoznik=" + voznik +
-                ", \nopis_poskusa='" + opis_poskusa + '\'' +
-                ", \nobtezitev='" + obtezitev + '\'' +
-                ", \nrazdelitev='" + razdelitev + '\'' +
-                ", \nokna='" + okna + '\'' +
-                ", \nklima='" + klima + '\'' +
-                ", \nporabniki='" + porabniki + '\'' +
-                ", \nogretost='" + ogretost + '\'' +
-                ", \nzunanji_pogoji='" + zunanji_pogoji + '\'' +
-                ", \nobremenitev='" + obremenitev + '\'' +
-                ", \ngas='" + gas + '\''
+                "telefon=" + telefon +
+                ", obd=" + obd +
+                ", avto=" + avto +
+                ", voznik=" + voznik +
+                ", opis_poskusa=" + opis_poskusa +
+                ", obtezitev=" + obtezitev +
+                ", razdelitev=" + razdelitev +
+                ", okna=" + okna +
+                ", klima='" + klima +
+                ", porabniki=" + porabniki +
+                ", ogretost=" + ogretost +
+                ", zunanji_pogoji=" + zunanji_pogoji +
+                ", obremenitev=" + obremenitev +
+                ", gas=" + gas
                 ;
     }
 

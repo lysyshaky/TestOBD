@@ -18,6 +18,9 @@
 
 package com.fr3ts0n.ecu.gui.test;
 
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+import static android.os.Build.VERSION.SDK_INT;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
@@ -28,18 +31,25 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.ActionMode;
@@ -53,9 +63,16 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import com.fr3ts0n.androbd.plugin.Plugin;
 import com.fr3ts0n.androbd.plugin.mgr.PluginManager;
@@ -96,6 +113,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -110,7 +128,7 @@ import java.util.stream.Collectors;
 /**
  * Main Activity for AndrOBD app
  */
-public class MainActivity<getCarSamples> extends PluginManager
+public class MainActivity extends PluginManager
         implements PvChangeListener,
         AdapterView.OnItemLongClickListener,
         PropertyChangeListener,
@@ -120,25 +138,12 @@ public class MainActivity<getCarSamples> extends PluginManager
 
 
 {
-//    public static void main (String [] args){
-//
-//        String path = "/Users/yuralysyshak/AndroidStudioProjects/example.csv";
-//        String line = "";
-//        try {
-//            BufferedReader br = new BufferedReader(new FileReader(path));
-//
-//            while ((line = br.readLine()) != null){
-//                System.out.println(line);
-//            }
-//
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        }catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    };
+    /**
+     * Accelerometer and gyroscope
+     */
 
-
+    public static final int TYPE_ACCELEROMETER = 0;
+    public static final int TYPE_GYROSCOPE = 0;
 
     /**
      * Key names for preferences
@@ -549,22 +554,37 @@ public class MainActivity<getCarSamples> extends PluginManager
         ObdProt.setFixedPid(pids);
     }
 
+
+
+
+    private SensorManager accelerometerManager;
+    private Sensor accelerometerSensor;
+    private SensorEventListener accelerometerEventListener;
+
+    private SensorManager gyroscopeManager;
+    private Sensor gyroscopeSensor;
+    private SensorEventListener gyroscopeEventListener;
+    private TextView csvText;
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         // instantiate superclass
         super.onCreate(savedInstanceState);
 
+
+
+
         requestWindowFeature(Window.FEATURE_PROGRESS);
 
         // get additional permissions
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+        if (SDK_INT >= Build.VERSION_CODES.M)
         {
             // Storage Permissions
             final int REQUEST_EXTERNAL_STORAGE = 1;
             final String[] PERMISSIONS_STORAGE = {
                     Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    WRITE_EXTERNAL_STORAGE
             };
             requestPermissions(PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
             // Workaround for FileUriExposedException in Android >= M
@@ -667,136 +687,204 @@ public class MainActivity<getCarSamples> extends PluginManager
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         dropdown.setAdapter(adapter);
         //dropdown.setOnItemSelectedListener();
-
+        EditText inputWeight = findViewById(R.id.weight);
         Button sendApiData = findViewById(R.id.send_data);
+        csvText = findViewById(R.id.textCSV);
+        Button loadCSV = findViewById(R.id.loadCSV);
         sendApiData.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String state = dropdown.getSelectedItem().toString();
-                Toast.makeText(getApplicationContext(), state, Toast.LENGTH_LONG).show();
+
+                String[] elements  = state.split(", ");
+
+
+                String getWeight = (String) inputWeight.getText().toString();
+
+
+                List<String> arrayLength = Arrays.asList(elements);
+
+                ArrayList<String> items = new ArrayList<>(arrayLength);
 
                 JSONObject jsonObject = new JSONObject();
-                int elementId = 1;
-                Log.d("STRING JSON", state);
-                for (int i = 0; i < state.length(); i++) // variable count to be your list (edit text) size.
-                {
 
-                   try
-                   {
-                        //fix ID
-                        elementId = i+1;
-                        //https://stackoverflow.com/questions/64206331/how-to-add-values-to-jsonobject-on-button-click-in-android
-                        //   jsonObject2.put(String.valueOf(carSamples.get(i).getTelefon()), String.valueOf(carSamples.get(i).getTelefon()));
-                        jsonObject.put(String.valueOf(elementId), state.trim());
+                for(String item : items){
+                    String[] itemKey = item.split("=");
+                    String itemValue = item.substring(item.lastIndexOf('=')+1);
+                    try {
+                        jsonObject.put("weight",String.valueOf(getWeight));
+                        jsonObject.put(String.valueOf(itemKey[0]), itemValue);
 
-                    }
-                    catch (Exception e)
-                    {
+
+                    } catch (JSONException e) {
                         e.printStackTrace();
-                        Log.e("JsonToSendError: ", String.valueOf(e));
                     }
-
-                    Log.e("JsonToSend: ", String.valueOf(jsonObject));
                 }
-
-
-//                JSONObject my_data = new JSONObject();
-//                try {
-//                    my_data.put("Data", dropdown.getSelectedItem().toString());
-//                    Log.d("MyActivity", "JSON created " + my_data);
-//                } catch (JSONException e) {
-//                    e.printStackTrace();
-//                }
-
-
+                Log.d("STRING JSON", String.valueOf(jsonObject));
+                Log.d("STRING JSON", state);
+                String sendDataToAPI = jsonObject.toString();
+                Toast.makeText(getApplicationContext(), sendDataToAPI, Toast.LENGTH_LONG).show();
             }
         });
 
+        loadCSV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //imp step
+                if(SDK_INT >= Build.VERSION_CODES.R)
+                {
+                    if(Environment.isExternalStorageManager()){
+                        //choosing csv file
+                        Intent intent=new Intent();
+                        intent.setType("*/*");
+                        intent.putExtra(Intent.EXTRA_AUTO_LAUNCH_SINGLE_CHOICE,true);
+                        intent.setAction(Intent.ACTION_GET_CONTENT);
+                        startActivityForResult(Intent.createChooser(intent,"Select CSV File "),101);
+                    }
+                    else{
+                        //getting permission from user
+                        Intent intent=new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                        Uri uri=Uri.fromParts("package",getPackageName(),null);
+                        startActivity(intent);
+                    }
+                }
+                else{
+                    // for below android 11
+                    Intent intent=new Intent();
+                    intent.setType("*/*");
+                    intent.putExtra(Intent.EXTRA_AUTO_LAUNCH_SINGLE_CHOICE,true);
+                    intent.setAction(Intent.ACTION_GET_CONTENT);
+                    ActivityCompat.requestPermissions(MainActivity.this,new String[] {WRITE_EXTERNAL_STORAGE},102);
+                }
+            }
+        });
 
+        accelerometerManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        accelerometerSensor = accelerometerManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
-//        class SpinnerActivity extends Activity implements AdapterView.OnItemSelectedListener {
-//
-//
-//            public void onItemSelected(AdapterView<?> parent, View view,
-//                                       int pos, long id) {
-//                // An item was selected. You can retrieve the selected item using
-//                // parent.getItemAtPosition(pos)
-//            }
-//
-//            public void onNothingSelected(AdapterView<?> parent) {
-//                // Another interface callback
-//            }
+        gyroscopeManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        gyroscopeSensor = gyroscopeManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+
+        if(accelerometerSensor == null) {
+            Toast.makeText(this, "The devise has no Accelerometer!", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+
+        if(gyroscopeSensor == null) {
+            Toast.makeText(this, "The devise has no Gyroscope!", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+
+        accelerometerEventListener = new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent sensorEvent) {
+                if(sensorEvent.values[2]> 0.5f){
+                    getWindow().getDecorView().setBackgroundColor(Color.RED);
+                }else if (sensorEvent.values[2] < -0.5f){
+                    getWindow().getDecorView().setBackgroundColor(Color.GREEN);
+                }
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int i) {
+
+            }
+        };
+
+        gyroscopeEventListener = new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent sensorEvent) {
+                if(sensorEvent.values[2]> 0.5f){
+                    getWindow().getDecorView().setBackgroundColor(Color.BLUE);
+                }else if (sensorEvent.values[2] < -0.5f){
+                    getWindow().getDecorView().setBackgroundColor(Color.YELLOW);
+                }
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int i) {
+
+            }
+        };
+
+    }
+
+    Uri fileuri;
+
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        if(requestCode==101 && data!=null){
+//            fileuri=data.getData();
+//            csvText.setText(readCSVFile(getFilePathFromUri(fileuri)));
 //        }
-
-
+//    }
+    // this method is used for getting file path from uri
+    public String getFilePathFromUri(Uri uri){
+        String[] filename1;
+        String fn;
+        String filepath=uri.getPath();
+        String filePath1[]=filepath.split(":");
+        filename1 =filepath.split("/");
+        fn=filename1[filename1.length-1];
+        return Environment.getExternalStorageDirectory().getPath()+"/"+filePath1[1];
     }
 
+    //reading file data
 
-//save stream to json object from spinner look at documents use onItemSelected and get a stream print it and send to json object
-
-//Test ADD CSV Data from spinner to JSON OBJECT
-    public List<CarSample> getCarSamples() throws IOException, JSONException {
-
-        List<CarSample> results = new ArrayList<CarSample>();
-
-        //Wrong code URL maybe error is here
-        List<CarSample> rawJSON = carSamples;
-        //Errors here maybe
-        JSONObject root  = new JSONObject((JSONTokener) rawJSON);
-
-        JSONArray carsInfo = root.getJSONArray("Cars");
-
-        for(int i = 0; i < carsInfo.length(); i++){
-            JSONObject jsonCarInfo = carsInfo.getJSONObject(i);
-            int telefon = jsonCarInfo.getInt("telefon");
-            int obd = jsonCarInfo.getInt("obd");
-            int avto = jsonCarInfo.getInt("avto");
-            int voznik = jsonCarInfo.getInt("voznik");
-            String opis_poskusa = jsonCarInfo.getString("opis poskusa");
-            String obtezitev = jsonCarInfo.getString("obtezitev");
-            String razdelitev = jsonCarInfo.getString("razdelitev");
-            String okna = jsonCarInfo.getString("okna");
-            String klima = jsonCarInfo.getString("klima");
-            String porabniki = jsonCarInfo.getString("porabniki");
-            String ogretost = jsonCarInfo.getString("ogretost");
-            String zunanji_pogoji = jsonCarInfo.getString("zunanji pogoji");
-            String obremenitev = jsonCarInfo.getString("obremenitev");
-            String gas = jsonCarInfo.getString("gas");
-
-            //create a new object / collection of data
-            CarSample carInfo = new CarSample();
-            carInfo.setTelefon(telefon);
-            carInfo.setObd(obd);
-            carInfo.setAvto(avto);
-            carInfo.setVoznik(voznik);
-            carInfo.setOpis_poskusa(opis_poskusa);
-            carInfo.setObtezitev(obtezitev);
-            carInfo.setRazdelitev(razdelitev);
-            carInfo.setOkna(okna);
-            carInfo.setKlima(klima);
-            carInfo.setPorabniki(porabniki);
-            carInfo.setOgretost(ogretost);
-            carInfo.setZunanji_pogoji(zunanji_pogoji);
-            carInfo.setObremenitev(obremenitev);
-            carInfo.setGas(gas);
-
-            results.add(carInfo);
-            Log.d("MyActivity", "JSON" + carInfo);
-            //System.out.println(carInfo);
-
-        }
+    public String readCSVFile(String path){
+        String filedata = null;
+        File file=new File(path);
         try {
-            getCarSamples();
-            System.out.println("JSON CARINFO");
-        } catch (JSONException e) {
-            System.out.println("ERROR CARSINFO");
+
+            Scanner scanner=new Scanner(file);
+            while (scanner.hasNextLine()){
+
+                String line=scanner.nextLine();
+                String [] splited = line.split(",");
+                String row="";
+                for (String s:splited){
+
+                    row=row+s+"  ";
+
+                }
+
+                filedata = filedata + row+"\n";
+
+            }
+
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
+            Toast.makeText(MainActivity.this,"Error",Toast.LENGTH_SHORT).show();
         }
 
-        return results;
+        return filedata;
+
+    }
+
+//    protected void onResumeAccelerometer(){
+//        super.onResume();
+//        accelerometerManager.registerListener(accelerometerEventListener, accelerometerSensor, SensorManager.SENSOR_DELAY_FASTEST);
+//    }
+//
+//
+//    protected void onPauseAccelerometer() {
+//        super.onPause();
+//        accelerometerManager.unregisterListener(accelerometerEventListener);
+//    }
+
+    protected void onResume(){
+        super.onResume();
+        accelerometerManager.registerListener(accelerometerEventListener, accelerometerSensor, SensorManager.SENSOR_DELAY_FASTEST);
+        gyroscopeManager.registerListener(gyroscopeEventListener, gyroscopeSensor, SensorManager.SENSOR_DELAY_FASTEST);
     }
 
 
+    protected void onPause() {
+        super.onPause();
+        accelerometerManager.unregisterListener(accelerometerEventListener);
+        gyroscopeManager.unregisterListener(gyroscopeEventListener);
+    }
 
     private List<CarSample> carSamples = new ArrayList<>();
     private void readCarData (){
@@ -825,9 +913,7 @@ public class MainActivity<getCarSamples> extends PluginManager
              sample.setZunanji_pogoji((tokens[11]));
             sample.setObremenitev((tokens[12]));
             sample.setGas((tokens[13]));
-
             carSamples.add(sample);
-
 
             Log.d("MyActivity", "just created " + sample);
             //System.out.println(sample);
@@ -838,10 +924,6 @@ public class MainActivity<getCarSamples> extends PluginManager
           }
 
       }
-
-
-
-
 
     /**
      * Handler for application start event
@@ -1128,8 +1210,14 @@ public class MainActivity<getCarSamples> extends PluginManager
      * Handler for result messages from other activities
      */
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data)
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data)
     {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==101 && data!=null){
+            fileuri=data.getData();
+            csvText.setText(readCSVFile(getFilePathFromUri(fileuri)));
+        }
+
         boolean secureConnection = false;
 
         switch (requestCode)
